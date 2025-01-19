@@ -20,7 +20,7 @@ const App = () => {
   const canvasRef = useRef(null);
 
   // model configs
-  const modelName = "cw";
+  const modelName = "best";
 
   useEffect(() => {
     tf.ready().then(async () => {
