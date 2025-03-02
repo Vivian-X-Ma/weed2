@@ -1,0 +1,19 @@
+description: Ultralytics best model trained on data.yaml
+author: Ultralytics
+date: '2025-01-18T23:40:43.396280'
+version: 8.3.63
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: crop
+  1: weed
+args:
+  batch: 1
+  half: false
+  int8: false
