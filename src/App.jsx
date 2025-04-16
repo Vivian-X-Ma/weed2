@@ -3,7 +3,11 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl"; // set backend to webgl
 import Loader from "./components/loader";
 import ButtonHandler from "./components/btn-handler";
-import { detect, detectVideo } from "./utils/detect";
+import {
+  preprocessImage,
+  runPrediction,
+  getPredictedLabel
+} from './utils/classify';
 import "./style/App.css";
 
 const App = () => {
@@ -12,6 +16,9 @@ const App = () => {
     net: null,
     inputShape: [1, 0, 0, 3],
   }); // init model & input shape
+
+  const [prediction, setPrediction] = useState(null);
+  const [probabilities, setProbabilities] = useState([]);
 
   // references
   const imageRef = useRef(null);
@@ -26,7 +33,7 @@ const App = () => {
     tf.ready().then(async () => {
       const yolov8 = await tf.loadGraphModel(
         //IMPORTANT NOTE: This  --> ${window.location.href} --> was originally where the "./" is. I changed it to "./" because for the hugging face deployment, the path was wrong. It needs to directly go into best_web_model folder, use relative path. 
-        `${window.location.href}${modelName}_web_model/model.json`,
+        `./${modelName}_web_model/model.json`,
         {
           onProgress: (fractions) => {
             setLoading({ loading: true, progress: fractions }); // set loading fractions
@@ -48,6 +55,36 @@ const App = () => {
     });
   }, []);
 
+  const handleImagePrediction = async () => {
+    if (!model.net || !imageRef.current) return;
+  
+    const tensor = preprocessImage(imageRef.current, model.inputShape);
+    const probs = await runPrediction(model.net, tensor);
+    const label = getPredictedLabel(probs, ["No Wildfire", "Wildfire"]);
+  
+    setPrediction(label);
+    setProbabilities(probs);
+  };
+
+  const handleVideoPrediction = async () => {
+    if (!model.net || !videoRef.current) return;
+  
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+  
+    const predictLoop = async () => {
+      const tensor = preprocessImage(videoRef.current, model.inputShape);
+      const probs = await runPrediction(model.net, tensor);
+      const label = getPredictedLabel(probs, ["No Wildfire", "Wildfire"]);
+  
+      setPrediction(label);
+      setProbabilities(probs);
+    };
+
+    predictLoop();
+  };
+    
+
   return (
     <div className="App">
       {loading.loading && (
@@ -61,30 +98,36 @@ const App = () => {
         <img
           src="#"
           ref={imageRef}
-          onLoad={() => detect(imageRef.current, model, canvasRef.current)}
+          onLoad= {handleImagePrediction}
         />
         <video
-          autoPlay
-          muted
-          ref={cameraRef}
-          playsInline
-          onPlay={() =>
-            detectVideo(cameraRef.current, model, canvasRef.current)
-          }
-        />
-        <video
-          autoPlay
-          muted
-          playsInline
-          ref={videoRef}
-          onPlay={() => detectVideo(videoRef.current, model, canvasRef.current)}
+   ref={videoRef}
+   autoPlay
+   playsInline
+   muted
+   width={model.inputShape[1]}
+   height={model.inputShape[2]}
+   onPlay={handleVideoPrediction}
         />
         <canvas
           width={model.inputShape[1]}
           height={model.inputShape[2]}
           ref={canvasRef}
         />
+
+{prediction && (
+        <div className="prediction-display">
+          <h2>Prediction: {prediction}</h2>
+          <ul>
+            <li>No Wildfire: {(probabilities[0] * 100).toFixed(2)}%</li>
+            <li>Wildfire: {(probabilities[1] * 100).toFixed(2)}%</li>
+          </ul>
+        </div>
+      )}
+
       </div>
+
+      
 
       <ButtonHandler
         imageRef={imageRef}
