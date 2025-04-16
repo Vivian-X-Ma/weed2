@@ -54,7 +54,7 @@ const App = () => {
         <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
       )}
       <div className="header">
-        <h1>Weed detection inference model</h1>
+        <h1>Wildfire detection of Satellite Images</h1>
       </div>
 
       <div className="content">
