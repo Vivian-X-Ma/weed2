@@ -26,7 +26,7 @@ const App = () => {
     tf.ready().then(async () => {
       const yolov8 = await tf.loadGraphModel(
         //IMPORTANT NOTE: This  --> ${window.location.href} --> was originally where the "./" is. I changed it to "./" because for the hugging face deployment, the path was wrong. It needs to directly go into best_web_model folder, use relative path. 
-        `${window.location.href}${modelName}_web_model/model.json`,
+        `./${modelName}_web_model/model.json`,
         {
           onProgress: (fractions) => {
             setLoading({ loading: true, progress: fractions }); // set loading fractions
@@ -54,7 +54,7 @@ const App = () => {
         <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
       )}
       <div className="header">
-        <h1>Weed detection inference model</h1>
+        <h1>Pothole detection model</h1>
       </div>
 
       <div className="content">
